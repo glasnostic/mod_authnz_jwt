@@ -853,13 +853,7 @@ static int create_token(request_rec *r, char** token_str, const char* username){
 }
 
 static int extra_claim_callback(void* token, int argc, char **row_vals, char **col_names) {
-	const char* skipped_field_name = "NAME";
-	for(int i = 0; i < argc; i++) {
-		if(strcmp(skipped_field_name, col_names[i]) == 0) {
-			continue;
-		}
-		token_add_claim((jwt_t*)token, col_names[i], row_vals[i]);
-	}
+	token_add_claim((jwt_t*)token, row_vals[1], row_vals[2]);
 	return 0;
 }
 
