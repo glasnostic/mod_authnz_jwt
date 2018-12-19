@@ -4,7 +4,7 @@ noinst_LTLIBRARIES = libmodauthnzjwt.la
 noinst_DATA = mod_authnz_jwt.la
 
 AM_CPPFLAGS = ${APACHE_CFLAGS} ${JWT_CFLAGS} ${JANSSON_CFLAGS} ${Z_CFLAGS}
-AM_LDFLAGS = ${JWT_LIBS} ${JANSSON_LDFLAGS} ${Z_LIBS} ${APR_LDFLAGS}
+AM_LDFLAGS = ${JWT_LIBS} ${JANSSON_LDFLAGS} ${Z_LIBS} ${APR_LDFLAGS} ${SQLITE_LDFLAGS}
 
 libmodauthnzjwt_la_SOURCES = mod_authnz_jwt.c
 
@@ -24,4 +24,4 @@ install-exec-local:
 
 mod_authnz_jwt.la: libmodauthnzjwt.la
 	${APXS} -c -o $@ $< ${APACHE_CFLAGS} ${JWT_CFLAGS} ${JWT_LIBS} \
-		${JANSSON_CFLAGS} ${JANSSON_LDFLAGS} ${Z_CFLAGS} ${Z_LIBS}
+		${JANSSON_CFLAGS} ${JANSSON_LDFLAGS} ${Z_CFLAGS} ${Z_LIBS} ${SQLITE_LDFLAG}

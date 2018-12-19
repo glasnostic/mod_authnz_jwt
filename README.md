@@ -27,7 +27,7 @@ Although this module is able to deliver valid tokens, it may be used to check to
 
 ### Installation from sources
 ~~~~
-sudo apt-get install libtool pkg-config autoconf libssl-dev check libjansson-dev
+sudo apt-get install libtool pkg-config autoconf libssl-dev check libjansson-dev sqlite3 libsqlite3-dev
 git clone https://github.com/benmcollins/libjwt
 cd libjwt
 git checkout tags/v1.8.0

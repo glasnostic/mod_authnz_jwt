@@ -48,6 +48,9 @@ fi
 APR_LDFLAGS="`${apr_config} --link-ld --libs`"
 AC_SUBST(APR_LDFLAGS)
 
+SQLITE_LDFLAGS="-lsqlite3"
+AC_SUBST(SQLITE_LDFLAGS)
+
 APACHE_CFLAGS="-I`${APXS} -q INCLUDEDIR` -I`${apr_config} --includedir`"
 AC_SUBST(APACHE_CFLAGS)
 

@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sqlite3.h>
 
 // RFC 7519 compliant library
 #include "jwt.h"
@@ -55,6 +56,7 @@
 #define DEFAULT_FORM_PASSWORD "password"
 #define DEFAULT_ATTRIBUTE_USERNAME "user"
 #define DEFAULT_SIGNATURE_ALGORITHM "HS256"
+#define SQL_QUERY_MAX_SIZE 100
 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CONFIGURATION STRUCTURE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~  */
@@ -145,6 +147,7 @@ static const authz_provider authz_jwtclaimarray_provider = {
 };
 
 static int auth_jwt_login_handler(request_rec *r);
+static int extra_claim_callback(void* token, int argc, char **row_vals, char **col_names);
 static int check_authn(request_rec *r, const char *username, const char *password);
 static int create_token(request_rec *r, char** token_str, const char* username);
 
@@ -825,16 +828,39 @@ static int create_token(request_rec *r, char** token_str, const char* username){
 	const char* username_attribute = (const char *)get_config_value(r, dir_attribute_username);
 
 	token_add_claim(token, username_attribute, username);
-    const char john[] = "john";
-    if(strcmp(john, username) == 0) {
-        token_add_claim(token, "role", "admin");
-    } else {
-        token_add_claim(token, "role", "user");
-    }
+
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc;
+	char sql[SQL_QUERY_MAX_SIZE];
+	memset(sql, '\0', SQL_QUERY_MAX_SIZE);
+
+	rc = sqlite3_open("/usr/local/apache2/user.db", &db);
+	if(rc) {
+		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+		return 0;
+	} else {
+		fprintf(stderr, "Opened database successfully\n");
+	}
+	if(snprintf(sql, SQL_QUERY_MAX_SIZE, "SELECT * from USER_INFO WHERE NAME='%s'", username) == -1) {
+		return -1;
+	}
+	rc = sqlite3_exec(db, sql, extra_claim_callback, (void*)token, &zErrMsg);
 
 	*token_str = token_encode_str(token);
 	token_free(token);
 	return OK;
+}
+
+static int extra_claim_callback(void* token, int argc, char **row_vals, char **col_names) {
+	const char* skipped_field_name = "NAME";
+	for(int i = 0; i < argc; i++) {
+		if(strcmp(skipped_field_name, col_names[i]) == 0) {
+			continue;
+		}
+		token_add_claim((jwt_t*)token, col_names[i], row_vals[i]);
+	}
+	return 0;
 }
 
 static int check_authn(request_rec *r, const char *username, const char *password){
